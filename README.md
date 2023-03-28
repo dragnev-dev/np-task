@@ -4,6 +4,6 @@ Client-server app written in **Rust** language.
 ##### Built with Cargo version 1.68.1
 ## How to run
 ### Server
-`run --package NP46420r --bin server`
+`cargo run --package np46420r --bin server`
 ### Client
-`run --package NP46420r --bin client`
+`cargo run --package np46420r --bin client`

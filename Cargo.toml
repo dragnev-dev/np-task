@@ -1,5 +1,5 @@
 [package]
-name = "NP46420r"
+name = "np46420r"
 version = "0.1.0"
 edition = "2021"
 default-run = "server"
