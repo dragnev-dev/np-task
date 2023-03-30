@@ -6,7 +6,7 @@ fn main() -> io::Result<( )>{
     // connect
     // Struct used to start requests to the server.
     // Check TcpStream Connection to the server
-    let mut stream = TcpStream::connect("127.0.0.1:7878")?;
+    let mut stream = TcpStream::connect("0.0.0.0:8080")?;
     for _ in 0..1000 {
         // Allow sender to enter message input
         let mut input = String::new();

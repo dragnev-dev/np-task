@@ -16,4 +16,5 @@ path = "src/client/main.rs"
 
 [dependencies]
 serde = { version = "1.0.156", features = ["derive"] }
+lazy_static = "1.4.0"
 csv = "1.2.1"
