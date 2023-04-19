@@ -10,36 +10,42 @@ fn handle_client(stream: TcpStream, data: &HashMap<u32, String>) -> io::Result<(
 
     loop {
         let mut request = String::new();
+        reader.read_line(&mut request)?;
+        let request = request.trim();
+        print!("Request: {}, ", request);
 
-        // Read a line from the client
-        match reader.read_line(&mut request) {
-            Ok(0) => return, // Connection closed
-            Ok(_) => {
-                // Trim whitespace and check if the key exists in the data structure
-                let request = request.trim();
-                println!("Request : {}", request);
-                let response = match request.parse::<u32>() {
-                    Ok(key) => {
-                        match data.get(&key) {
-                            Some(value) => format!("{}: {}", key, value),
-                            None => String::from("no match"),
-                        }
+        let response = match request.parse::<u32>() {
+            Ok(key) => {
+                match data.get(&key) {
+                    Some(value) => {
+                        println!("{}", value);
+                        format!("{}: {}", key, value)
+                    },
+                    None => {
+                        let result = String::from("no match");
+                        println!("{}", result);
+                        result
                     }
-                    Err(_) => {
-                        match data.iter().find(|(_, value)| value == &&request) {
-                            Some((key, _)) => format!("{}: {}", key, request),
-                            None => String::from("no match"),
-                        }
-                    }
-                };
-
-                println!("Response: {}", response);
-                // Send the response to the client
-                writer.write(response.as_bytes()).unwrap();
-                writer.write(b"\n").unwrap();
+                }
             }
-            Err(_) => return, // Error reading from client
-        }
+            Err(_) => {
+                match data.iter().find(|(_, value)| value == &&request) {
+                    Some((key, _)) => {
+                        println!("{}", key);
+                        format!("{}: {}", key, request)
+                    },
+                    None => {
+                        let response = String::from("no match");
+                        println!("{}", response);
+                        response
+                    }
+                }
+            }
+        };
+
+        writer.write_all(response.as_bytes())?;
+        writer.write_all(b"\n")?;
+        writer.flush()?;
     }
 }
 
@@ -69,7 +75,6 @@ fn main() -> io::Result<()> {
         match stream {
             Ok(stream) => {
                 let data = data.clone();
-                // Spawn a new thread to handle the client
                 thread::spawn(move || {
                     handle_client(stream, &data);
                 });
