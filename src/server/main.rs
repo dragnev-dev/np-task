@@ -62,6 +62,8 @@ fn main() -> io::Result<()> {
 
     // Start TCP server
     let listener = TcpListener::bind("127.0.0.1:8080")?;
+    println!("Server is running!");
+    println!("Listening on 127.0.0.1:8080...");
 
     for stream in listener.incoming() {
         match stream {
