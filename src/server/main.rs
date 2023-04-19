@@ -4,9 +4,9 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 use std::{env, io, thread};
 
-fn handle_client(stream: TcpStream, data: &HashMap<u32, String>) {
-    let mut reader = BufReader::new(&stream);
-    let mut writer = stream.try_clone().unwrap();
+fn handle_client(stream: TcpStream, data: &HashMap<u32, String>) -> io::Result<()> {
+    let mut reader = BufReader::new(stream.try_clone()?);
+    let mut writer = stream;
 
     loop {
         let mut request = String::new();
