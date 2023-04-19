@@ -31,5 +31,4 @@ fn main() {
     } else {
         println!("Failed to connect to server.");
     }
-    Ok(())
 }
