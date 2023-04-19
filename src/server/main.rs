@@ -51,7 +51,7 @@ fn handle_client(stream: TcpStream, data: &HashMap<u32, String>) -> io::Result<(
 
 fn main() -> io::Result<()> {
     // Load data from CSV file
-    let data_file = env::current_dir()?.join("assets/data.csv");
+    let data_file = env::current_dir()?.join("assets/places_postcodes.csv");
     let mut data: HashMap<u32, String> = HashMap::new();
 
     let file = File::open(&data_file)?;
