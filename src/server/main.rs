@@ -1,10 +1,10 @@
 use std::collections::HashMap;
+use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
-use std::sync::{Arc, Mutex};
-use std::thread;
+use std::{env, io, thread};
 
-fn handle_client(stream: TcpStream, data: Arc<Mutex<HashMap<String, String>>>) {
+fn handle_client(stream: TcpStream, data: &HashMap<u32, String>) {
     let mut reader = BufReader::new(&stream);
     let mut writer = stream.try_clone().unwrap();
 
@@ -16,11 +16,21 @@ fn handle_client(stream: TcpStream, data: Arc<Mutex<HashMap<String, String>>>) {
             Ok(0) => return, // Connection closed
             Ok(_) => {
                 // Trim whitespace and check if the key exists in the data structure
-                let key = request.trim();
+                let request = request.trim();
                 println!("Request : {}", request);
-                let response = match data.lock().unwrap().get(key) {
-                    Some(value) => value.to_string(),
-                    None => "no match".to_string(),
+                let response = match request.parse::<u32>() {
+                    Ok(key) => {
+                        match data.get(&key) {
+                            Some(value) => format!("{}: {}", key, value),
+                            None => String::from("no match"),
+                        }
+                    }
+                    Err(_) => {
+                        match data.iter().find(|(_, value)| value == &&request) {
+                            Some((key, _)) => format!("{}: {}", key, request),
+                            None => String::from("no match"),
+                        }
+                    }
                 };
 
                 println!("Response: {}", response);
@@ -33,29 +43,34 @@ fn handle_client(stream: TcpStream, data: Arc<Mutex<HashMap<String, String>>>) {
     }
 }
 
-fn main() {
+fn main() -> io::Result<()> {
     // Create a TCP listener on port 8080
     let listener = TcpListener::bind("0.0.0.0:8080").unwrap();
 
-    // Create a hashmap to store the key-value pairs
-    let mut data = HashMap::new();
-    data.insert("hello".to_string(), "world".to_string());
-    data.insert("foo".to_string(), "bar".to_string());
-    data.insert("rust".to_string(), "lang".to_string());
+    // Load data from CSV file
+    let data_file = env::current_dir()?.join("assets/data.csv");
+    let mut data: HashMap<u32, String> = HashMap::new();
 
-    // Wrap the data hashmap in an Arc and Mutex so it can be shared and synchronized between threads
-    let data_arc = Arc::new(Mutex::new(data));
+    let file = File::open(&data_file)?;
+    let reader = BufReader::new(file);
+    for line in reader.lines() {
+        let line = line?;
+        let parts: Vec<&str> = line.split(',').collect();
+        if parts.len() == 2 {
+            let key = parts[0].parse().unwrap_or(0);
+            let value = String::from(parts[1]);
+            data.insert(key, value);
+        }
+    }
 
     // Accept incoming client connections
     for stream in listener.incoming() {
-        println!("55");
         match stream {
             Ok(stream) => {
-                // Clone the Arc to pass a reference to the shared data to the new thread
-                let data_arc_clone = data_arc.clone();
+                let data = data.clone();
                 // Spawn a new thread to handle the client
                 thread::spawn(move || {
-                    handle_client(stream, data_arc_clone);
+                    handle_client(stream, &data);
                 });
             }
             Err(e) => {
@@ -63,4 +78,6 @@ fn main() {
             }
         }
     }
+
+    Ok(())
 }
