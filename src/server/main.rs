@@ -12,7 +12,7 @@ fn handle_client(stream: TcpStream, data: &HashMap<u32, String>) -> io::Result<(
         let mut request = String::new();
         reader.read_line(&mut request)?;
         let request = request.trim();
-        print!("Request: {}, ", request);
+        print!("Request \"{}\": ", request);
 
         let response = match request.parse::<u32>() {
             Ok(key) => {
@@ -29,17 +29,26 @@ fn handle_client(stream: TcpStream, data: &HashMap<u32, String>) -> io::Result<(
                 }
             }
             Err(_) => {
-                match data.iter().find(|(_, value)| value == &&request) {
-                    Some((key, _)) => {
-                        println!("{}", key);
-                        format!("{}: {}", key, request)
-                    },
-                    None => {
-                        let response = String::from("no match");
-                        println!("{}", response);
-                        response
+                let mut response = String::new();
+
+                for (key, value) in data.iter() {
+                    if value == &request {
+                        print!("{}, ", key);
+                        response.push_str(&format!("{}: {}, ", key, value));
                     }
                 }
+
+                // removes trailing comma and whitespace
+                if !response.is_empty() {
+                    response.pop();
+                    response.pop();
+                } else {
+                    print!("no match");
+                    response = String::from("no match");
+                }
+
+                println!();
+                response
             }
         };
 
