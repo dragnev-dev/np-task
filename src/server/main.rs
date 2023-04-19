@@ -76,11 +76,13 @@ fn main() -> io::Result<()> {
             Ok(stream) => {
                 let data = data.clone();
                 thread::spawn(move || {
-                    handle_client(stream, &data);
+                    if let Err(err) = handle_client(stream, &data) {
+                        eprintln!("Error handling client: {}", err);
+                    }
                 });
             }
-            Err(e) => {
-                eprintln!("error accepting client: {}", e);
+            Err(err) => {
+                eprintln!("Failed to accept client: {}", err);
             }
         }
     }
