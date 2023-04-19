@@ -44,9 +44,6 @@ fn handle_client(stream: TcpStream, data: &HashMap<u32, String>) {
 }
 
 fn main() -> io::Result<()> {
-    // Create a TCP listener on port 8080
-    let listener = TcpListener::bind("0.0.0.0:8080").unwrap();
-
     // Load data from CSV file
     let data_file = env::current_dir()?.join("assets/data.csv");
     let mut data: HashMap<u32, String> = HashMap::new();
@@ -63,7 +60,9 @@ fn main() -> io::Result<()> {
         }
     }
 
-    // Accept incoming client connections
+    // Start TCP server
+    let listener = TcpListener::bind("127.0.0.1:8080")?;
+
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
