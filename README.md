@@ -1,5 +1,5 @@
 # Network Programming 46420r
-Client-server app written in **Rust** language.
+A multi client-server app written in **Rust** language.
 
 ##### Built with Cargo version 1.68.1
 ## How to run
